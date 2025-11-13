@@ -3,9 +3,8 @@ package co.com.nequi.model.user.gateways;
 import co.com.nequi.model.user.User;
 import reactor.core.publisher.Mono;
 
-public interface UserRepository {
+public interface ExternalUserGateway {
 
-    Mono<User> saveUser(User user);
-    Mono<User> findUserById(Long id);
+    Mono<User> fetchUserById(Long id);
 
 }
