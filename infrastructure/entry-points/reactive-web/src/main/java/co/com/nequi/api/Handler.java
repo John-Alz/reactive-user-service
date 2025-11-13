@@ -60,6 +60,15 @@ public class Handler {
                 .flatMap(result -> buildSuccessResponse(messageId, result, HttpStatus.OK));
     }
 
+    public Mono<ServerResponse> getUsersByName(ServerRequest serverRequest) {
+        String messageId = UUID.randomUUID().toString();
+        String name = serverRequest.pathVariable("name");
+        return userUseCase.findAllUsersByName(name)
+                .map(mapper::toResponse)
+                .collectList()
+                .flatMap(result -> buildSuccessResponse(messageId, result, HttpStatus.OK));
+    }
+
 
     private Mono<ServerResponse> buildErrorResponse(HttpStatus status, String messageId, List<ErrorDTO> errors) {
         return Mono.defer(() -> {
