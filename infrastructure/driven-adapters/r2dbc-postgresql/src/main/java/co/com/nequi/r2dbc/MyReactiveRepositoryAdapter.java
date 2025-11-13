@@ -6,6 +6,7 @@ import co.com.nequi.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -34,5 +35,16 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<User,
     @Override
     public Mono<User> findUserById(Long id) {
         return this.findById(id);
+    }
+
+    @Override
+    public Flux<User> findAllUsers() {
+        return this.findAll();
+    }
+
+    @Override
+    public Flux<User> findAllUsersByName(String name) {
+        return this.repository.findByFirstNameContainingIgnoreCase(name)
+                .map(this::toEntity);
     }
 }
