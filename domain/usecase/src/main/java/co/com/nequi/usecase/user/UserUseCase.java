@@ -4,16 +4,20 @@ import co.com.nequi.model.user.User;
 import co.com.nequi.model.user.enums.TechnicalMessage;
 import co.com.nequi.model.user.exception.BusinessException;
 import co.com.nequi.model.user.gateways.ExternalUserGateway;
+import co.com.nequi.model.user.gateways.UserCacheRepository;
 import co.com.nequi.model.user.gateways.UserRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @RequiredArgsConstructor
 public class UserUseCase {
 
     private final UserRepository userRepository;
     private final ExternalUserGateway userGateway;
+    private final UserCacheRepository cacheRepository;
 
     public Mono<User> saveUser(Long id) {
         return userRepository.findUserById(id)
@@ -26,9 +30,14 @@ public class UserUseCase {
     }
 
     public Mono<User> getUserById(Long id) {
-        return userRepository.findUserById(id)
+        return cacheRepository.findUserByID(id)
                 .switchIfEmpty(
-                        Mono.error(new BusinessException(TechnicalMessage.USER_NOT_FOUND))
+                        Mono.defer(() ->
+                                userRepository.findUserById(id)
+                                        .delayElement(Duration.ofSeconds(4))
+                                        .flatMap(cacheRepository::saveUser)
+                                        .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.USER_NOT_FOUND)))
+                        )
                 );
     }
 
