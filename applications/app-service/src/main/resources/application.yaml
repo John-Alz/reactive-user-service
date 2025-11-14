@@ -60,8 +60,8 @@ adapter:
     ttl: 3600000
   sqs:
     region: "us-east-1"
-    queueUrl: "http://localhost:4566/000000000000/sample"
-    endpoint: "http://localhost:4566 # For localstack only"
+    queueUrl: "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/user_created_queue"
+    endpoint: "http://localhost:4566"
 resilience4j:
   circuitbreaker:
     instances:
