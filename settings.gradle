@@ -28,3 +28,7 @@ include ':reactive-web'
 project(':reactive-web').projectDir = file('./infrastructure/entry-points/reactive-web')
 include ':redis'
 project(':redis').projectDir = file('./infrastructure/driven-adapters/redis')
+include ':metrics'
+project(':metrics').projectDir = file('./infrastructure/helpers/metrics')
+include ':sqs-sender'
+project(':sqs-sender').projectDir = file('./infrastructure/driven-adapters/sqs-sender')

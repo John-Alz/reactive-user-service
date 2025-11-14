@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @RequiredArgsConstructor
 public class UserUseCase {
 
@@ -32,6 +34,7 @@ public class UserUseCase {
                 .switchIfEmpty(
                         Mono.defer(() ->
                                 userRepository.findUserById(id)
+                                        .delayElement(Duration.ofSeconds(4))
                                         .flatMap(cacheRepository::saveUser)
                                         .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.USER_NOT_FOUND)))
                         )
