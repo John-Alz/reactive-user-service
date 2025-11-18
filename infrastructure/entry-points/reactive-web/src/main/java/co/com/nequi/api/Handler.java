@@ -4,7 +4,6 @@ import co.com.nequi.api.dto.APISuccessResponse;
 import co.com.nequi.api.dto.error.APIErrorResponse;
 import co.com.nequi.api.dto.error.ErrorDTO;
 import co.com.nequi.api.mapper.UserMapper;
-import co.com.nequi.model.user.User;
 import co.com.nequi.model.user.enums.TechnicalMessage;
 import co.com.nequi.model.user.exception.BusinessException;
 import co.com.nequi.usecase.user.UserUseCase;
@@ -14,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -28,7 +26,7 @@ public class Handler {
     private final UserMapper mapper;
 
     public Mono<ServerResponse> saveUser(ServerRequest serverRequest) {
-        String messageId = UUID.randomUUID().toString();
+        String messageId = "msg-" + System.currentTimeMillis();
         Long id = Long.valueOf(serverRequest.pathVariable("id"));
         return userUseCase.saveUser(id)
                 .map(mapper::toResponse)

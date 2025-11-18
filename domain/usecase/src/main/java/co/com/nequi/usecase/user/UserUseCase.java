@@ -5,6 +5,7 @@ import co.com.nequi.model.user.enums.TechnicalMessage;
 import co.com.nequi.model.user.exception.BusinessException;
 import co.com.nequi.model.user.gateways.ExternalUserGateway;
 import co.com.nequi.model.user.gateways.UserCacheRepository;
+import co.com.nequi.model.user.gateways.UserEventRepository;
 import co.com.nequi.model.user.gateways.UserRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
@@ -18,6 +19,7 @@ public class UserUseCase {
     private final UserRepository userRepository;
     private final ExternalUserGateway userGateway;
     private final UserCacheRepository cacheRepository;
+    private final UserEventRepository userEventRepository;
 
     public Mono<User> saveUser(Long id) {
         return userRepository.findUserById(id)
@@ -25,6 +27,7 @@ public class UserUseCase {
                         Mono.defer(() ->
                                 userGateway.fetchUserById(id)
                                         .flatMap(userRepository::saveUser)
+                                        .flatMap(userEventRepository::sendUserCreatedEvent)
                         )
                 );
     }

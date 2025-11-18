@@ -1,47 +1,114 @@
-# Proyecto Base Implementando Clean Architecture
+# API Reactiva de Gestión de Usuarios
 
-## Antes de Iniciar
+## Descripción
 
-Empezaremos por explicar los diferentes componentes del proyectos y partiremos de los componentes externos, continuando con los componentes core de negocio (dominio) y por último el inicio y configuración de la aplicación.
+Esta aplicación es una implementación de un servicio de usuarios reactivo, desarrollada como parte de un reto de onboarding. La aplicación utiliza una arquitectura limpia (Clean Architecture) y sigue los principios del Domain-Driven Design (DDD).
 
-Lee el artículo [Clean Architecture — Aislando los detalles](https://medium.com/bancolombia-tech/clean-architecture-aislando-los-detalles-4f9530f35d7a)
+Las principales funcionalidades son:
+- Creación de usuarios a partir de la API pública de [reqres.in](https://reqres.in/).
+- Almacenamiento de usuarios en una base de datos PostgreSQL de forma reactiva.
+- Consulta de usuarios por ID, con un mensaje de error si el usuario no existe.
+- Consulta de todos los usuarios existentes.
+- Consulta de usuarios por nombre.
+- Implementación de caché con Redis para optimizar las consultas.
+- Envío de eventos a una cola de AWS SQS de forma asíncrona después de la creación de un usuario.
+- Un entry point que consume los eventos de la cola, transforma los datos del usuario a mayúsculas y los almacena en DynamoDB.
 
-# Arquitectura
+## Prerrequisitos
 
-![Clean Architecture](https://miro.medium.com/max/1400/1*ZdlHz8B0-qu9Y-QO3AXR_w.png)
+Asegúrate de tener instalado el siguiente software en tu máquina local:
 
-## Domain
+- [Java](https://www.java.com/en/download/)
+- [Gradle](https://gradle.org/install/)
+- [Docker](https://www.docker.com/products/docker-desktop/)
+- [AWS CLI](https://aws.amazon.com/cli/) (para interactuar con Localstack)
 
-Es el módulo más interno de la arquitectura, pertenece a la capa del dominio y encapsula la lógica y reglas del negocio mediante modelos y entidades del dominio.
+## Configuración y Ejecución
 
-## Usecases
+Sigue estos pasos para configurar y ejecutar el proyecto en tu entorno local:
 
-Este módulo gradle perteneciente a la capa del dominio, implementa los casos de uso del sistema, define lógica de aplicación y reacciona a las invocaciones desde el módulo de entry points, orquestando los flujos hacia el módulo de entities.
+### 1. Levantar el entorno de Docker
 
-## Infrastructure
+El proyecto utiliza `docker-compose` para gestionar los servicios de `PostgreSQL`, `Redis` y `Localstack`. Para iniciar estos servicios, ejecuta el siguiente comando en la raíz del proyecto:
 
-### Helpers
+```bash
+docker-compose up -d
+```
 
-En el apartado de helpers tendremos utilidades generales para los Driven Adapters y Entry Points.
+### 2. Configurar Localstack (AWS)
 
-Estas utilidades no están arraigadas a objetos concretos, se realiza el uso de generics para modelar comportamientos
-genéricos de los diferentes objetos de persistencia que puedan existir, este tipo de implementaciones se realizan
-basadas en el patrón de diseño [Unit of Work y Repository](https://medium.com/@krzychukosobudzki/repository-design-pattern-bc490b256006)
+Una vez que los contenedores estén en funcionamiento, necesitas crear la cola de SQS y la tabla de DynamoDB en Localstack.
 
-Estas clases no puede existir solas y debe heredarse su compartimiento en los **Driven Adapters**
+#### Crear la cola de SQS
 
-### Driven Adapters
+Ejecuta el siguiente comando para crear la cola `user_created_queue`:
 
-Los driven adapter representan implementaciones externas a nuestro sistema, como lo son conexiones a servicios rest,
-soap, bases de datos, lectura de archivos planos, y en concreto cualquier origen y fuente de datos con la que debamos
-interactuar.
+```bash
+aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name user_created_queue```
 
-### Entry Points
+#### Crear la tabla de DynamoDB
 
-Los entry points representan los puntos de entrada de la aplicación o el inicio de los flujos de negocio.
+Ejecuta el siguiente comando para crear la tabla `users`:
 
-## Application
+```bash
+aws --endpoint-url=http://localhost:4566 dynamodb create-table \
+    --table-name UsersNoSQL \
+    --attribute-definitions AttributeName=id,AttributeType=S \
+    --key-schema AttributeName=id,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+```
 
-Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”.
+### 3. Ejecutar la aplicación
 
-**Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**
+Finalmente, puedes ejecutar la aplicación Spring Boot utilizando el wrapper de Gradle:
+
+```bash
+./gradlew bootRun
+```
+
+La aplicación estará disponible en `http://localhost:8080`.
+
+## Endpoints de la API
+
+La aplicación expone los siguientes endpoints REST:
+
+### Crear un usuario
+
+- **Método**: `POST`
+- **Endpoint**: `/api/v1/users/{id}`
+- **Descripción**: Crea un nuevo usuario obteniendo los datos de la API de `reqres.in` a partir de un `id`. Si el usuario ya existe en la base de datos, no se actualiza y se retorna el usuario existente.
+- **Ejemplo de uso**:
+  ```bash
+  curl -X POST http://localhost:8080/api/v1/users/1
+  ```
+
+### Consultar un usuario por ID
+
+- **Método**: `GET`
+- **Endpoint**: `/api/v1/users/{id}`
+- **Descripción**: Consulta un usuario por su `id`. Si el usuario no existe, retorna un mensaje indicando que no se encontró.
+- **Ejemplo de uso**:
+  ```bash
+  curl http://localhost:8080/api/v1/users/1
+  ```
+
+### Consultar todos los usuarios
+
+- **Método**: `GET`
+- **Endpoint**: `/api/v1/users`
+- **Descripción**: Consulta todos los usuarios almacenados en la base de datos.
+- **Ejemplo de uso**:
+  ```bash
+  curl http://localhost:8080/api/v1/users
+  ```
+
+### Consultar usuarios por nombre
+
+- **Método**: `GET`
+- **Endpoint**: `/api/users/name`
+- **Parámetros de consulta**: `name`
+- **Descripción**: Consulta los usuarios cuyo nombre (`first_name`) coincida con el parámetro `name`.
+- **Ejemplo de uso**:
+  ```bash
+  curl "http://localhost:8080/api/v1/users/name?name=George"
+  ```

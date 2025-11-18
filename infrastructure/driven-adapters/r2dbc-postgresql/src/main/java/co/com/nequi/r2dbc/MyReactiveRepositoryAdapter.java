@@ -28,7 +28,7 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<User,
     @Override
     public Mono<User> saveUser(User user) {
         UserEntity entity = this.toData(user);
-        return  entityTemplate.insert(entity)
+        return entityTemplate.insert(entity)
                 .map(this::toEntity);
     }
 
