@@ -11,6 +11,7 @@ spring:
       path: "/h2"
   profiles:
     include: null
+    active: local
   redis:
     host: "localhost"
     port: 6379
@@ -83,3 +84,16 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
+entrypoint:
+  sqs:
+    region: "us-east-1"
+    endpoint: "http://localhost:4566"
+    queueUrl: "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/user_created_queue"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
+aws:
+  region: "us-east-1"
+  dynamodb:
+    endpoint: "http://localhost:4566"

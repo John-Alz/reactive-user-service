@@ -3,7 +3,6 @@ package co.com.nequi.api.dto.error;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
-import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
