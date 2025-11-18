@@ -1,0 +1,21 @@
+spring:
+  # 1. Desactiva la ejecución de schema.sql
+  sql:
+    init:
+      mode: never
+
+  # 2. Configura R2DBC para que no falle al inicio
+  # (Usamos H2 como placeholder inofensivo)
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    # Esto evita que intente conectar al arrancar si no es necesario
+    pool:
+      enabled: false
+
+# (Tus propiedades dummy de AWS siguen aquí)
+aws:
+  region: "us-east-1"
+  dynamodb:
+    endpoint: "http://localhost:4566"
