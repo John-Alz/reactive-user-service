@@ -26,7 +26,7 @@ public class Handler {
     private final UserMapper mapper;
 
     public Mono<ServerResponse> saveUser(ServerRequest serverRequest) {
-        String messageId = UUID.randomUUID().toString();
+        String messageId = "msg-" + System.currentTimeMillis();
         Long id = Long.valueOf(serverRequest.pathVariable("id"));
         return userUseCase.saveUser(id)
                 .map(mapper::toResponse)

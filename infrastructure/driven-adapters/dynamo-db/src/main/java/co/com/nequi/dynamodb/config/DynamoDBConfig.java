@@ -17,7 +17,7 @@ import java.net.URI;
 public class DynamoDBConfig {
 
     @Bean
-    @Profile({"local"})
+    @Profile({"local", "test"})
     public DynamoDbAsyncClient amazonDynamoDB(@Value("${aws.dynamodb.endpoint}") String endpoint,
                                               @Value("${aws.region}") String region,
                                               MetricPublisher publisher) {
