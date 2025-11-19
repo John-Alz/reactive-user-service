@@ -42,6 +42,11 @@ subprojects {
         testCompileOnly  "org.projectlombok:lombok:${lombokVersion}"
         testAnnotationProcessor  "org.projectlombok:lombok:${lombokVersion}"
         implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+        implementation 'org.slf4j:slf4j-api:2.0.16'
+        if (!project.name.equalsIgnoreCase(modelModule) && !project.name.equalsIgnoreCase(useCaseModule)) {
+//            dependencies.add("implementation", "ch.qos.logback:logback-classic:${logbackVersion}")
+            dependencies.add("implementation", "net.logstash.logback:logstash-logback-encoder:${logstashLogbackVersion}")
+        }
     }
 
     tasks.withType(Test).configureEach {

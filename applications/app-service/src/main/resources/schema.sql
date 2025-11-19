@@ -5,3 +5,5 @@ CREATE TABLE IF NOT EXISTS users (
     last_name VARCHAR(255),
     avatar VARCHAR(255)
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_first_name ON users (first_name);

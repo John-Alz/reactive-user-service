@@ -2,7 +2,10 @@ package co.com.nequi.dynamodb;
 
 import co.com.nequi.dynamodb.helper.TemplateAdapterOperations;
 import co.com.nequi.model.user.User;
+import co.com.nequi.model.user.enums.TechnicalMessage;
+import co.com.nequi.model.user.exception.TechnicalException;
 import co.com.nequi.model.user.gateways.UserNoSQLRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
@@ -13,8 +16,11 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 
 import java.util.List;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+
 
 @Repository
+@Slf4j
 public class DynamoDBTemplateAdapter extends TemplateAdapterOperations<User /*domain model*/, String,
         UserNoSqlEntity> implements UserNoSQLRepository /* implements Gateway from domain */ {
 
@@ -46,7 +52,15 @@ public class DynamoDBTemplateAdapter extends TemplateAdapterOperations<User /*do
 
     @Override
     public Mono<User> saveUser(User user) {
-        return super.save(user);
+        return super.save(user)
+                .onErrorMap(ex -> {
+                    log.error("Error guardando usuario en DynamoDB",
+                            kv("userId", user.getId()),
+                            kv("errorType", ex.getClass().getSimpleName()),
+                            kv("originalMsg", ex.getMessage()),
+                            ex);
+                    return new TechnicalException(TechnicalMessage.DATABASE_ERROR);
+                });
     }
 
 }
