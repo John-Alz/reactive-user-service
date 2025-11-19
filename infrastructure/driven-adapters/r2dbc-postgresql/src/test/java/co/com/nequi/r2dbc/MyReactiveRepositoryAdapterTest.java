@@ -8,29 +8,27 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivecommons.utils.ObjectMapper;
-import org.springframework.data.domain.Example;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+//@ExtendWith(MockitoExtension.class)
 class MyReactiveRepositoryAdapterTest {
 
-    @Mock
+//    @Mock
     private MyReactiveRepository myReactiveRepository;
 
-    @Mock
+//    @Mock
     private ObjectMapper mapper;
 
-    @Mock
+//    @Mock
     private R2dbcEntityTemplate entityTemplate;
 
-    @InjectMocks
+//    @InjectMocks
     MyReactiveRepositoryAdapter repositoryAdapter;
 
     private User user;
@@ -38,6 +36,10 @@ class MyReactiveRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
+        myReactiveRepository = mock(MyReactiveRepository.class);
+        mapper = mock(ObjectMapper.class);
+        entityTemplate = mock(R2dbcEntityTemplate.class);
+        repositoryAdapter = new MyReactiveRepositoryAdapter(myReactiveRepository, mapper, entityTemplate);
         user = new User();
         user.setId(1L);
         user.setFirstName("john");

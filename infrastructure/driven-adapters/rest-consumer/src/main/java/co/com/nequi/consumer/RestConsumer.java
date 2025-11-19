@@ -20,6 +20,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 @RequiredArgsConstructor
 @Slf4j
 public class RestConsumer implements ExternalUserGateway /* implements Gateway from domain */{
+
     private final WebClient client;
     private final UserClientMapper mapper;
 
@@ -32,14 +33,15 @@ public class RestConsumer implements ExternalUserGateway /* implements Gateway f
                 .retrieve()
                 .bodyToMono(ReqResApiResponse.class)
                 .map(item -> mapper.toDomain(item.getData()))
-                .onErrorMap(ex -> {
+                .doOnError(ex ->
                     log.error("Error consumiendo servicio externo Users",
                             kv("userId", id),
                             kv("errorType", ex.getClass().getSimpleName()),
                             kv("originalMessage", ex.getMessage()),
-                            ex);
-                    return new TechnicalException(TechnicalMessage.EXTERNAL_SERVICE_ERROR);
-                });
-
+                            ex)
+                )
+                .onErrorMap(ex ->
+                    new TechnicalException(TechnicalMessage.EXTERNAL_SERVICE_ERROR)
+                );
     }
 }
